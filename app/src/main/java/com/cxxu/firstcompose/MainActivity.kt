@@ -1,11 +1,15 @@
 package com.cxxu.firstcompose
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -13,29 +17,31 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.cxxu.firstcompose.ui.theme.FirstComposeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContent {
+            FirstComposeTheme {
+                MessageCard3(Message("Android", "Jetpack Compose"))
+//                MessageCard3(Message("line2","test"))
+            }
 //            Text("Hello world!")
-            MessageCard0("Android")
-            MessageCard1(
-                /*这里是MessageCard1()的参数,可以直接用构造函数实例化一个,赋值给默认参数(形参)*/
-                msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!")
-            )
-            MessageCard2(
-                msg = Message("MessageCard2", "show!")
-            )
-//            setContent {
-//            }
-//            FirstComposeTheme {
-            //                // A surface container using the 'background' color from the theme
-            //                Surface(color = MaterialTheme.colors.background) {
-            //                    Greeting("Android")
-            //                }
-            //            }
+            /*setContent{}中的内容在安装app后会实际的显示在屏幕上*/
+            Row {
+
+//                MessageCard0("Android")
+//                MessageCard1(
+//                    /*这里是MessageCard1()的参数,可以直接用构造函数实例化一个,赋值给默认参数(形参)*/
+//                    msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!")
+//                )
+//                MessageCard2(
+//                    msg = Message("MessageCard2", "show!")
+//                )
+            }
+
         }
     }
 }
@@ -54,7 +60,7 @@ fun MessageCard0(name: String) {
 在这个函数中调用想要被预览的函数本身,且要给与适当的(默认参数)来查看*/
 //@Preview //(当您先要关闭某个预览compose function,把@Preview注释掉即可
 @Composable
-fun PreviewMessageCard() {
+fun MessageCard0Pre() {
     /*被预览的函数*/
     MessageCard0("Android2")
 }
@@ -116,6 +122,7 @@ fun MessageCard2Pre() {
 @Composable
 fun MessageCard3(msg: Message) {
     // Add padding around our message
+    /*这里为了更加精细的控制布局和显示效果,我们启用了composable function的modifier参数(限定符)*/
     Row(modifier = Modifier.padding(all = 8.dp)) {
         Image(
             painter = painterResource(R.drawable.painter1),
@@ -125,35 +132,90 @@ fun MessageCard3(msg: Message) {
                 .size(40.dp)
                 // Clip image to be shaped as a circle
                 .clip(CircleShape)
+                /*尝试添加颜色设定:(采用Material主题中的颜色值做设置)
+                * 加上下面这一行,头像就有外圈青色的环*/
+                .border(1.5.dp, MaterialTheme.colors.secondary, CircleShape)
         )
 
         // Add a horizontal space between the image and the column
         Spacer(modifier = Modifier.width(8.dp))
 
         Column {
-            Text(text = msg.author)
+            Text(
+                text = msg.author,
+                /*依然尝试采用MaterialDesign的值来设置颜色,同时采用其排版值(方案subtitle2)*/
+                color = MaterialTheme.colors.secondaryVariant,
+                style = MaterialTheme.typography.subtitle2
+            )
             // Add a vertical space between the author and message texts
             Spacer(modifier = Modifier.height(4.dp))
-            Text(text = msg.body)
+//            Text(
+//                text = msg.body,
+//                style = MaterialTheme.typography.body2
+//            )
+            /*形状封装:依然采用MaterialTheme的值来设计*/
+            Surface(shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
+                Text(
+                    text = msg.body,
+                    /*填充*/
+                    modifier = Modifier.padding(all = 4.dp),
+                    style = MaterialTheme.typography.body2
+                )
+            }
+
         }
     }
 }
 
-@Preview
+//@Preview
 @Composable
 fun MessageCard3Pre() {
     MessageCard3(msg = Message("MessageCard3", "isn't it beautiful?"))
 }
 
-//@Composable
-//fun Greeting(name: String) {
-//    Text(text = "Hello $name!")
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun DefaultPreview() {
-//    FirstComposeTheme {
-//        Greeting("Android")
-//    }
-//}
+
+/*布局采样主题化*/
+
+
+@Preview
+@Composable
+fun PreviewMessageCard() {
+    /*主题名在创建项目(Activity)之初就已经生成了,当然也可以搜索ui.theme自行查找*/
+    FirstComposeTheme {
+        MessageCard3(
+            msg = Message("Colleague", "Take a look at Jetpack Compose, it's great!")
+        )
+    }
+}
+
+/**启用深色主题
+您可以启用深色主题（或夜间模式），以避免显示屏过亮（尤其是在夜间），或者只是节省设备电量。由于支持 Material Design，Jetpack Compose 默认能够处理深色主题。使用 Material 颜色、文本和背景时，系统会自动适应深色背景。
+
+您可以在文件中以单独函数的形式创建多个预览，也可以向同一个函数中添加多个注解。
+
+下面我们来添加新的预览注解并启用夜间模式。*/
+
+@Preview(name = "Light Mode")
+@Composable
+fun MessageCard3PreLight() {
+    FirstComposeTheme() {
+        MessageCard3(
+            msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!")
+        )
+    }
+}
+
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    name = "Dark Mode"
+)
+@Composable
+fun MessageCard3PreDark() {
+    FirstComposeTheme() {
+        MessageCard3(
+            msg = Message("Colleague", "Hey, take a look at Jetpack Compose, it's great!")
+        )
+    }
+}
+
