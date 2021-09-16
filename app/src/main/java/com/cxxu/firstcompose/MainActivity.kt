@@ -4,14 +4,18 @@ import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
@@ -25,6 +29,8 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             FirstComposeTheme {
+                /*show the data set*/
+                Conversation(SampleData.conversationSample)
                 MessageCard3(Message("Android", "Jetpack Compose"))
 //                MessageCard3(Message("line2","test"))
             }
@@ -139,8 +145,23 @@ fun MessageCard3(msg: Message) {
 
         // Add a horizontal space between the image and the column
         Spacer(modifier = Modifier.width(8.dp))
-
-        Column {
+        /*try to add animation for the list */
+        // We keep track if the message is expanded or not in this
+        // variable
+        /*为了存储此本地界面状态，我们需要跟踪消息是否已扩展。为了跟踪这种状态变化，我们必须使用 remember 和 mutableStateOf 函数。
+        * 可组合函数可以使用 remember 将本地状态存储在内存中，并跟踪传递给 mutableStateOf 的值的变化。该值更新时，系统会自动重新绘制使用此状态的可组合项（及其子项）。我们将这一功能称为重组。*/
+        var isExpanded by remember { mutableStateOf(false) }
+        /*use modifier to implement the animation:(with click)*/
+        // surfaceColor will be updated gradually from one color to the other
+        /*设置颜色渐变*/
+        // surfaceColor will be updated gradually from one color to the other
+        /*by lazy代码块是Kotlin提供的一种懒加载技术，
+代码块中的代码一开始并不会执行，当变量首次被调用的时候才会执行，并且会将代码块中最后一行代码的返回值赋给变量*/
+        /*by 关键字:+高阶函数用法*/
+//        var color=(if (isExpanded) MaterialTheme.colors.primary else MaterialTheme.colors.surface)
+//        val surfaceColor: Color by animateColorAsState(color)
+        // We toggle the isExpanded variable when we click on this Column
+        Column(modifier = Modifier.clickable { isExpanded = !isExpanded }) {
             Text(
                 text = msg.author,
                 /*依然尝试采用MaterialDesign的值来设置颜色,同时采用其排版值(方案subtitle2)*/
@@ -154,11 +175,28 @@ fun MessageCard3(msg: Message) {
 //                style = MaterialTheme.typography.body2
 //            )
             /*形状封装:依然采用MaterialTheme的值来设计*/
-            Surface(shape = MaterialTheme.shapes.medium, elevation = 1.dp) {
+            Surface(
+                shape = MaterialTheme.shapes.medium, elevation = 1.dp,
+                // surfaceColor color will be changing gradually from primary to surface
+//                color = surfaceColor,
+                // animateContentSize will change the Surface size gradually
+                modifier = Modifier
+                    .animateContentSize()
+                    .padding(1.dp)
+            ) {
+//                Text(
+//                    text = msg.body,
+//                    /*填充*/
+//                    modifier = Modifier.padding(all = 4.dp),
+//                    style = MaterialTheme.typography.body2
+//                )
+                /*modify to implement animation*/
                 Text(
                     text = msg.body,
-                    /*填充*/
                     modifier = Modifier.padding(all = 4.dp),
+                    // If the message is expanded, we display all its content
+                    // otherwise we only display the first line
+                    maxLines = if (isExpanded) Int.MAX_VALUE else 1,
                     style = MaterialTheme.typography.body2
                 )
             }
@@ -219,3 +257,22 @@ fun MessageCard3PreDark() {
     }
 }
 
+/*wow,jetPack compose development help programmer build great UI significantly easier*/
+/*now we add the sample data to rich the presenting list:
+* we prepare two Composable function to make it*/
+@Composable
+fun Conversation(messages: List<Message>) {
+    LazyColumn {
+        items(messages) { message ->
+            MessageCard3(message)
+        }
+    }
+}
+
+@Preview
+@Composable
+fun PreviewConversation() {
+    FirstComposeTheme {
+        Conversation(SampleData.conversationSample)
+    }
+}
